@@ -1,14 +1,17 @@
-if(ZFP_WITH_CUDA)
-  set(CMAKE_CXX_FLAGS_PREVIOUS ${CMAKE_CXX_FLAGS})
-  set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fPIC" )
+# if(ZFP_WITH_CUDA)
+#   set(CMAKE_CXX_FLAGS_PREVIOUS ${CMAKE_CXX_FLAGS})
+#   set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fPIC" )
+#   add_subdirectory(cuda_zfp)
+#   cuda_include_directories(${PROJECT_SOURCE_DIR}/include)
+#   cuda_wrap_srcs(zfp OBJ zfp_cuda_backend_obj cuda_zfp/cuZFP.cu OPTIONS ${CMAKE_CUDA_FLAGS})
+#   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_PREVIOUS})
+#   add_definitions(-DZFP_WITH_CUDA)
+# endif()
 
-  add_subdirectory(cuda_zfp)
-  cuda_include_directories(${PROJECT_SOURCE_DIR}/include)
-  cuda_wrap_srcs(zfp OBJ zfp_cuda_backend_obj cuda_zfp/cuZFP.cu OPTIONS ${CMAKE_CUDA_FLAGS})
-  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_PREVIOUS})
+if(ZFP_WITH_CUDA)
+  set(zfp_cuda_backend_obj cuda_zfp/cuZFP.cu)
   add_definitions(-DZFP_WITH_CUDA)
 endif()
-
 
 set(zfp_source
   zfp.c
@@ -43,6 +46,9 @@ endif()
 
 if(ZFP_WITH_CUDA)
   target_link_libraries(zfp PRIVATE ${CUDA_CUDART_LIBRARY} stdc++)
+  set_target_properties(zfp PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  set_target_properties(zfp PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  target_compile_options(zfp PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${CUDA_NVCC_FLAGS}>)
 endif()
 
 target_compile_definitions(zfp
